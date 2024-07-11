@@ -37,3 +37,10 @@ export const sendNotFoundResponse = (res: Response, message: string): void => {
     };
     res.status(404).json(errorResponse);
 };
+
+export const sendUnauthorizedResponse = (res: Response, message: string) => {
+    res.status(401).json({ message });
+};
+export const sendErrorResponse = (res: Response, message: string) => {
+    res.status(500).json({ error: true, message });
+};

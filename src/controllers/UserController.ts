@@ -1,13 +1,12 @@
 import { Request, Response } from 'express';
 import { firestoredatabase, collection, doc } from '../database/Firebase';
 import { User } from '../model/UserModel';
-import { Conversation } from '../model/ConversationModel';
-import { Message } from '../model/MessageModel';
-import { addDoc, getDoc, getDocs, query, where } from 'firebase/firestore';
+import { addDoc, deleteDoc, getDoc, getDocs, query, where } from 'firebase/firestore';
 import { sendNotFoundResponse, sendSuccessResponse, sendValidationErrorResponse } from '../utils/response ';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import * as dotenv from 'dotenv';
+import { RefreshToken } from '../model/RefreshTokenModel';
 
 dotenv.config();
 
@@ -26,7 +25,6 @@ export const getAllUsers = async (req: Request, res: Response) => {
     }
 };
 
-// Hàm lấy người dùng theo ID và không trả về mật khẩu
 export const getUserById = async (req: Request, res: Response) => {
     const { userId } = req.params;
 
@@ -35,7 +33,8 @@ export const getUserById = async (req: Request, res: Response) => {
         const userDoc = await getDoc(userRef);
 
         if (userDoc.exists()) {
-            const { password, ...userWithoutPassword } = userDoc.data() as User;
+            const userData = userDoc.data() as User;
+            const { password, ...userWithoutPassword } = userData;
             sendSuccessResponse(res, userWithoutPassword, 'User fetched successfully.');
         } else {
             sendNotFoundResponse(res, 'User not found.');
@@ -45,7 +44,6 @@ export const getUserById = async (req: Request, res: Response) => {
         sendNotFoundResponse(res, 'Failed to fetch user.');
     }
 };
-
 // Hàm sinh mã token JWT access
 export const generateAccessToken = (user: { _id: string }): string => {
     return jwt.sign(
@@ -114,7 +112,6 @@ export const register = async (req: Request, res: Response) => {
     }
 };
 
-// Hàm đăng nhập và không trả về mật khẩu
 export const login = async (req: Request, res: Response) => {
     const { username, password } = req.body;
 
@@ -143,98 +140,68 @@ export const login = async (req: Request, res: Response) => {
         const accessToken = generateAccessToken({ _id: userDoc.id });
         const refreshToken = generateRefreshToken({ _id: userDoc.id });
 
+        // Lưu refresh token vào Firebase
+        const refreshTokensRef = collection(firestoredatabase, 'refreshTokens');
+        const newRefreshToken: RefreshToken = {
+            userId: userDoc.id,
+            refreshToken: refreshToken,
+            created_at: new Date(),
+        };
+        await addDoc(refreshTokensRef, newRefreshToken);
+
+        // Đặt token vào cookie
+        res.cookie('refreshToken', refreshToken, {
+            httpOnly: true,
+            secure: false, // Nên để là true nếu sử dụng HTTPS
+            path: '/',
+            sameSite: 'strict',
+        });
+
+        res.cookie('accessToken', accessToken, {
+            httpOnly: true,
+            secure: false, // Nên để là true nếu sử dụng HTTPS
+            path: '/',
+            sameSite: 'strict',
+        });
+
         const { password: _, ...userWithoutPassword } = userData;
 
-        sendSuccessResponse(res, { accessToken, refreshToken, user: userWithoutPassword }, 'Login successful.');
+        sendSuccessResponse(res, { user: userWithoutPassword }, 'Login successful.');
     } catch (error) {
         console.error('Error logging in:', error);
         sendNotFoundResponse(res, 'Login failed.');
     }
 };
 
-//   export const getConversations = async (req: Request, res: Response) => {
-//     try {
-//       const conversationsRef = collection(firestoredatabase, 'conversations');
-//       const snapshot = await getDocs(conversationsRef);
-//       const conversations: Conversation[] = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Conversation));
-//       res.status(200).json(conversations);
-//     } catch (error) {
-//       res.status(500).send(error.message);
-//     }
-//   };
+export const logout = async (req: Request, res: Response) => {
+    const refreshToken = req.cookies.refreshToken;
 
-//   export const getMessages = async (req: Request, res: Response) => {
-//     const { conversationId } = req.params;
-//     try {
-//       const messagesRef = collection(firestoredatabase, `conversations/${conversationId}/messages`);
-//       const snapshot = await getDocs(messagesRef);
-//       const messages: Message[] = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Message));
-//       res.status(200).json(messages);
-//     } catch (error) {
-//       res.status(500).send(error.message);
-//     }
-//   };
+    if (!refreshToken) {
+        sendNotFoundResponse(res, 'Refresh token not found.');
+        return;
+    }
 
-//   export const sendMessage = async (req: Request, res: Response) => {
-//     const { conversationId } = req.params;
-//     const { senderId, content } = req.body;
+    try {
+        // Tìm và xóa refresh token trong cơ sở dữ liệu
+        const refreshTokensRef = collection(firestoredatabase, 'refreshTokens');
+        const querySnapshot = await getDocs(query(refreshTokensRef, where('refreshToken', '==', refreshToken)));
 
-//     try {
-//       const messagesRef = collection(firestoredatabase, `conversations/${conversationId}/messages`);
-//       const newMessage: Omit<Message, 'id'> = {
-//         conversationId,
-//         senderId,
-//         content,
-//         timestamp: new Date().toISOString()
-//       };
-//       const messageDoc = await addDoc(messagesRef, newMessage);
+        if (querySnapshot.empty) {
+            sendNotFoundResponse(res, 'Refresh token not found in database.');
+            return;
+        }
 
-//       // Cập nhật lastMessageTimestamp trong tài liệu conversation
-//       const conversationRef = doc(firestoredatabase, 'conversations', conversationId);
-//       await updateDoc(conversationRef, {
-//         lastMessageTimestamp: newMessage.timestamp
-//       });
+        // Xóa refresh token
+        const refreshTokenDoc = querySnapshot.docs[0];
+        await deleteDoc(doc(firestoredatabase, 'refreshTokens', refreshTokenDoc.id));
 
-//       res.status(200).send(`Message sent with ID: ${messageDoc.id}`);
-//     } catch (error) {
-//       res.status(500).send(error.message);
-//     }
-//   };
+        // Xóa cookie
+        res.clearCookie('refreshToken', { path: '/' });
+        res.clearCookie('accessToken', { path: '/' });
 
-//   export const getOrCreateConversation = async (req: Request, res: Response) => {
-//     const { userId1, userId2 } = req.body;
-
-//     try {
-//       // Kiểm tra xem cuộc trò chuyện giữa hai người dùng đã tồn tại chưa
-//       const conversationsRef = collection(firestoredatabase, 'conversations');
-//       const conversationQuery = await getDocs(query(collection(conversationsRef)
-//         .where('participants', 'array-contains', userId1)));
-
-//       let conversation: Conversation | null = null;
-//       conversationQuery.forEach(doc => {
-//         const data = doc.data() as Conversation;
-//         if (data.participants.includes(userId2)) {
-//           conversation = { id: doc.id, ...data };
-//         }
-//       });
-
-//       let conversationId: string;
-
-//       if (conversation) {
-//         // Cuộc trò chuyện đã tồn tại
-//         conversationId = conversation.id;
-//       } else {
-//         // Tạo cuộc trò chuyện mới
-//         const newConversation: Omit<Conversation, 'id'> = {
-//           participants: [userId1, userId2],
-//           messages: []
-//         };
-//         const conversationDoc = await addDoc(conversationsRef, newConversation);
-//         conversationId = conversationDoc.id;
-//       }
-
-//       res.status(200).json({ conversationId });
-//     } catch (error) {
-//       res.status(500).send(error.message);
-//     }
-//   };
+        sendSuccessResponse(res, {}, 'Logout successful.');
+    } catch (error) {
+        console.error('Error logging out:', error);
+        sendNotFoundResponse(res, 'Logout failed.');
+    }
+};
