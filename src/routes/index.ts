@@ -6,4 +6,4 @@ const router: Router = Router();
 router.get('/students', getAllStudents);
 router.post('/student', addStudent);
 
-export { router };
+export default router;

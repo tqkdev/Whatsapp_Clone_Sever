@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { firestore } from '../database/Firebase';
+import { firestoredatabase } from '../database/Firebase';
 import Student from '../model/index';
 
 import { CollectionReference, DocumentData } from 'firebase/firestore';
@@ -8,7 +8,7 @@ import { collection, addDoc, getDocs, doc } from 'firebase/firestore';
 const addStudent = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const data = req.body;
-        await addDoc(collection(firestore, 'students'), data);
+        await addDoc(collection(firestoredatabase, 'students'), data);
         res.send('Record saved successfully');
     } catch (error) {
         res.status(400).send('loi add');
@@ -17,7 +17,7 @@ const addStudent = async (req: Request, res: Response, next: NextFunction) => {
 
 const getAllStudents = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const studentsCollection: CollectionReference<DocumentData> = collection(firestore, 'students');
+        const studentsCollection: CollectionReference<DocumentData> = collection(firestoredatabase, 'students');
         const data = await getDocs(studentsCollection);
         const studentsArray: Student[] = [];
         if (data.empty) {
