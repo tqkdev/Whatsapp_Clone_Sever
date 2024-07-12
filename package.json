@@ -27,6 +27,7 @@
     "@types/cookie-parser": "^1.4.7",
     "@types/express": "^4.17.21",
     "@types/node": "^20.14.10",
+    "@types/socket.io": "^3.0.2",
     "bcryptjs": "^2.4.3",
     "concurrently": "^8.2.2",
     "cookie-parser": "^1.4.6",
@@ -46,6 +47,9 @@
     "typescript": "^5.5.3"
   },
   "compilerOptions": {
-    "typeRoots": ["./node_modules/@types", "./types"]
+    "typeRoots": [
+      "./node_modules/@types",
+      "./types"
+    ]
   }
 }

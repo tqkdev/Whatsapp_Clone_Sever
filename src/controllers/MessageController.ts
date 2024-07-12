@@ -36,7 +36,7 @@ export const getMessages = async (req: Request, res: Response) => {
 export const sendMessage = async (req: Request, res: Response) => {
     try {
         const { conversationId } = req.params;
-        const { senderId, content, timestamp } = req.body;
+        const { senderId, content } = req.body;
 
         if (!conversationId) {
             sendNotFoundResponse(res, 'Missing conversation ID.');
@@ -44,8 +44,8 @@ export const sendMessage = async (req: Request, res: Response) => {
         }
 
         // Kiểm tra nếu các trường bắt buộc thiếu
-        if (!senderId || !content || !timestamp) {
-            sendNotFoundResponse(res, 'Missing required fields (senderId, content, timestamp).');
+        if (!senderId || !content) {
+            sendNotFoundResponse(res, 'Missing required fields (senderId, content).');
             return;
         }
 
@@ -54,7 +54,7 @@ export const sendMessage = async (req: Request, res: Response) => {
             ConversationId: conversationId,
             senderId,
             content,
-            timestamp,
+            created_at: new Date(),
         };
 
         // Lấy tham chiếu đến cuộc trò chuyện
@@ -73,7 +73,7 @@ export const sendMessage = async (req: Request, res: Response) => {
         // Cập nhật dữ liệu cuộc trò chuyện trong Firestore
         await updateDoc(conversationRef, {
             messages: updatedMessages,
-            lastMessageTimestamp: timestamp,
+            created_at: new Date(),
         });
 
         // Gửi phản hồi thành công

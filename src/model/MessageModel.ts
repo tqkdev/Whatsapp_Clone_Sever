@@ -3,5 +3,5 @@ export interface Message {
     ConversationId: string; // ID của cuộc trò chuyện mà tin nhắn thuộc về
     senderId: string; // userId của người gửi
     content: string;
-    timestamp: string; // ISO string của thời gian gửi tin nhắn
+    created_at?: Date;
 }

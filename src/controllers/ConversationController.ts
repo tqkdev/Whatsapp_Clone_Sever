@@ -33,7 +33,6 @@ export const getOrCreateConversation = async (req: Request, res: Response) => {
                         id: doc.id,
                         participants: conversation.participants,
                         messages: conversation.messages,
-                        lastMessageTimestamp: conversation.lastMessageTimestamp,
                     };
                 }
             } catch (error) {
@@ -76,7 +75,6 @@ export const getAllConversations = async (req: Request, res: Response) => {
                     id: doc.id,
                     participants: conversation.participants,
                     messages: conversation.messages,
-                    lastMessageTimestamp: conversation.lastMessageTimestamp,
                 });
             } catch (error) {
                 console.error('Error in forEach:', error);

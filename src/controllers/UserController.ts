@@ -97,6 +97,7 @@ export const register = async (req: Request, res: Response) => {
             username,
             email,
             password: hashedPassword,
+            created_at: new Date(),
         });
 
         const newUser = {
