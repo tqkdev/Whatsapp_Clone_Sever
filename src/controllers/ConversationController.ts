@@ -1,56 +1,91 @@
 import { Request, Response } from 'express';
 import { addDoc, collection, getDoc, getDocs, query, where, doc } from 'firebase/firestore';
 import { firestoredatabase } from '../database/Firebase';
-import { Conversation, ConversationParticipant } from '../model/ConversationModel';
-import { sendErrorResponse, sendSuccessResponse } from '../utils/response ';
+import { Conversation } from '../model/ConversationModel';
+import { sendErrorResponse, sendNotFoundResponse, sendSuccessResponse } from '../utils/response ';
 import { User } from '../model/UserModel';
 
-export const getAllConversations = async (req: Request, res: Response) => {
-    const userId = req.user.id; // Lấy userId từ thông tin đã được xác thực
+// Hàm để lấy hoặc tạo Conversation giữa hai người dùng
 
+export const getOrCreateConversation = async (req: Request, res: Response) => {
     try {
+        const { user1Id, user2Id, username1, username2 } = req.body;
+
+        if (!user1Id || !user2Id) {
+            sendNotFoundResponse(res, 'Missing user IDs.');
+            return;
+        }
+
+        // Tạo một mảng chứa user ids để sử dụng trong truy vấn
+        const userIds = [user1Id, user2Id].sort(); // Sắp xếp để đảm bảo thứ tự không đổi
         const conversationsRef = collection(firestoredatabase, 'conversations');
+        const querySnapshot = await getDocs(conversationsRef);
 
-        // Tìm tất cả cuộc trò chuyện mà người dùng tham gia
-        const conversationQuery = query(conversationsRef, where('participants.userId', '==', userId));
+        let foundConversation: Conversation | undefined;
 
-        const querySnapshot = await getDocs(conversationQuery);
-
-        const conversations: Conversation[] = [];
         querySnapshot.forEach((doc) => {
-            const data = doc.data() as Conversation;
-
-            // Lấy thông tin chi tiết của từng người tham gia
-            const participantsWithDetails: ConversationParticipant[] = [];
-            for (const participant of data.participants) {
-                // Ví dụ lấy thông tin từng người dùng từ cơ sở dữ liệu
-                const userDetails: User = {
-                    id: participant.userId,
-                    username: 'example_username',
-                    email: 'example_email@example.com',
-                    password: 'hashed_password', // Dữ liệu này cần được lấy từ cơ sở dữ liệu
-                    // Thêm các thông tin khác nếu cần
-                };
-
-                participantsWithDetails.push({
-                    userId: participant.userId,
-                    userDetails: userDetails,
-                });
+            try {
+                const conversation = doc.data() as Conversation;
+                // Kiểm tra xem Conversation có chứa cả hai user không
+                const participantIds = conversation.participants.map((participant) => participant.id).sort();
+                if (userIds.toString() === participantIds.toString()) {
+                    foundConversation = {
+                        id: doc.id,
+                        participants: conversation.participants,
+                        messages: conversation.messages,
+                        lastMessageTimestamp: conversation.lastMessageTimestamp,
+                    };
+                }
+            } catch (error) {
+                console.error('Error in forEach:', error);
             }
-
-            const conversation: Conversation = {
-                id: doc.id,
-                participants: participantsWithDetails,
-                messages: data.messages,
-                lastMessageTimestamp: data.lastMessageTimestamp,
-            };
-
-            conversations.push(conversation);
         });
 
-        sendSuccessResponse(res, conversations, 'Conversations fetched successfully.');
+        // Nếu tìm thấy Conversation
+        if (foundConversation) {
+            sendSuccessResponse(res, foundConversation, 'Found existing conversation.');
+        } else {
+            // Nếu không tìm thấy Conversation, tạo mới
+            const newConversation: Conversation = {
+                participants: [
+                    { id: user1Id, username: username1 || 'Unknown User' },
+                    { id: user2Id, username: username2 || 'Unknown User' },
+                ],
+                messages: [],
+            };
+
+            const newConversationRef = await addDoc(conversationsRef, newConversation);
+            sendSuccessResponse(res, { id: newConversationRef.id, ...newConversation }, 'Created new conversation.');
+        }
+    } catch (error) {
+        console.error('Error in getOrCreateConversation:', error);
+        sendNotFoundResponse(res, 'Failed to get or create conversation.');
+    }
+};
+export const getAllConversations = async (req: Request, res: Response) => {
+    try {
+        const conversationsRef = collection(firestoredatabase, 'conversations');
+        const querySnapshot = await getDocs(conversationsRef);
+
+        const conversations: Conversation[] = [];
+
+        querySnapshot.forEach((doc) => {
+            try {
+                const conversation = doc.data() as Conversation;
+                conversations.push({
+                    id: doc.id,
+                    participants: conversation.participants,
+                    messages: conversation.messages,
+                    lastMessageTimestamp: conversation.lastMessageTimestamp,
+                });
+            } catch (error) {
+                console.error('Error in forEach:', error);
+            }
+        });
+
+        sendSuccessResponse(res, conversations, 'Fetched all conversations.');
     } catch (error) {
         console.error('Error in getAllConversations:', error);
-        sendErrorResponse(res, 'Failed to fetch conversations.');
+        sendNotFoundResponse(res, 'Failed to fetch conversations.');
     }
 };

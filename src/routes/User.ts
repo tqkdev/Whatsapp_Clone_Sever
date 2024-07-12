@@ -10,9 +10,4 @@ router.post('/user', register);
 router.post('/login', login);
 router.post('/logout', authenticateToken, logout);
 
-// router.get('/conversations', getConversations);
-// router.get('/conversations/:conversationId/messages', getMessages);
-// router.post('/conversations/:conversationId/messages', sendMessage);
-// router.post('/conversations', getOrCreateConversation); // Route mới để lấy hoặc tạo cuộc trò chuyện
-
 export default router;
