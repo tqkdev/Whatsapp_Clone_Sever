@@ -6,7 +6,7 @@ const router = Router();
 
 router.get('/users', getAllUsers);
 router.get('/user/:userId', authenticateToken, getUserById);
-router.post('/user', register);
+router.post('/register', register);
 router.post('/login', login);
 router.post('/logout', authenticateToken, logout);
 
