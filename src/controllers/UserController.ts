@@ -78,12 +78,12 @@ export const register = async (req: Request, res: Response) => {
     try {
         // Kiểm tra xem username đã tồn tại chưa
         const usersRef = collection(firestoredatabase, 'users');
-        const querySnapshot = await getDocs(query(usersRef, where('username', '==', username)));
+        const querySnapshot = await getDocs(query(usersRef, where('email', '==', email)));
 
         if (!querySnapshot.empty) {
             sendValidationErrorResponse(
                 res,
-                [{ field: 'username', message: 'Username already exists.' }],
+                [{ field: 'email', message: 'email already exists.' }],
                 'Registration failed.',
             );
             return;
@@ -114,15 +114,15 @@ export const register = async (req: Request, res: Response) => {
 };
 
 export const login = async (req: Request, res: Response) => {
-    const { username, password } = req.body;
+    const { email, password } = req.body;
 
     try {
         // Tìm người dùng trong cơ sở dữ liệu
         const usersRef = collection(firestoredatabase, 'users');
-        const querySnapshot = await getDocs(query(usersRef, where('username', '==', username)));
+        const querySnapshot = await getDocs(query(usersRef, where('email', '==', email)));
 
         if (querySnapshot.empty) {
-            sendNotFoundResponse(res, 'User not found.');
+            sendNotFoundResponse(res, 'email not found.');
             return;
         }
 
@@ -166,8 +166,7 @@ export const login = async (req: Request, res: Response) => {
         });
 
         const { password: _, ...userWithoutPassword } = userData;
-
-        sendSuccessResponse(res, { user: userWithoutPassword }, 'Login successful.');
+        sendSuccessResponse(res, { id: userDoc.id, user: userWithoutPassword }, 'Login successful.');
     } catch (error) {
         console.error('Error logging in:', error);
         sendNotFoundResponse(res, 'Login failed.');
@@ -204,5 +203,41 @@ export const logout = async (req: Request, res: Response) => {
     } catch (error) {
         console.error('Error logging out:', error);
         sendNotFoundResponse(res, 'Logout failed.');
+    }
+};
+
+export const searchUser = async (req: Request, res: Response) => {
+    const { username } = req.query;
+
+    if (!username) {
+        sendNotFoundResponse(res, 'Missing username.');
+        return;
+    }
+
+    try {
+        const usersRef = collection(firestoredatabase, 'users');
+        const userQuery = query(
+            usersRef,
+            where('username', '>=', username),
+            where('username', '<=', username + '\uf8ff'),
+        );
+        const querySnapshot = await getDocs(userQuery);
+
+        if (querySnapshot.empty) {
+            sendNotFoundResponse(res, 'No users found.');
+            return;
+        }
+
+        const users: Partial<User>[] = [];
+        querySnapshot.forEach((doc) => {
+            const userData = doc.data() as User;
+            const { password, ...userWithoutPassword } = userData;
+            users.push({ id: doc.id, ...userWithoutPassword });
+        });
+
+        sendSuccessResponse(res, users, 'Users found.');
+    } catch (error) {
+        console.error('Error searching users:', error);
+        sendNotFoundResponse(res, 'Failed to search users.');
     }
 };
