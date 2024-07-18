@@ -5,6 +5,8 @@ import { Conversation } from '../model/ConversationModel';
 import { sendSuccessResponse, sendNotFoundResponse } from '../utils/response ';
 import { getDoc, updateDoc } from 'firebase/firestore';
 import { io } from '../../index'; // Import io từ index.ts
+// import { getSocketIO } from '../Socket/Socket';
+// const io = getSocketIO();
 
 // export const getMessages = async (req: Request, res: Response) => {
 //     try {
@@ -129,7 +131,7 @@ export const sendMessage = async (req: Request, res: Response) => {
         });
 
         // Phát tín hiệu qua Socket.IO
-        io.to(conversationId).emit('newMessage', newMessage);
+        // io.to(conversationId).emit('newMessage', newMessage);
 
         // Gửi phản hồi thành công
         sendSuccessResponse(res, newMessage, 'Message sent successfully.');
@@ -161,9 +163,9 @@ export const getMessages = async (req: Request, res: Response) => {
         const messages: Message[] = conversationData.messages;
 
         // Lắng nghe sự kiện joinRoom để tham gia vào room tương ứng với conversationId
-        io.on('connection', (socket) => {
-            socket.join(conversationId);
-        });
+        // io.on('connection', (socket) => {
+        //     socket.join(conversationId);
+        // });
 
         sendSuccessResponse(res, messages, 'Fetched messages successfully.');
     } catch (error) {
