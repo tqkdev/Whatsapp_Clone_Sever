@@ -25,14 +25,26 @@ const io = new Server(server, {
 });
 
 io.on('connection', (socket) => {
-    console.log('a user connected');
+    console.log('A user connected');
 
-    socket.on('disconnect', () => {
-        console.log('user disconnected');
+    socket.on('joinConversation', (conversationId) => {
+        socket.join(conversationId);
+        console.log(`User joined conversation: ${conversationId}`);
     });
 
-    // Your other event handlers go here
+    socket.on('disconnect', () => {
+        console.log('User disconnected');
+    });
 });
+// io.on('connection', (socket) => {
+//     console.log('a user connected');
+
+//     socket.on('disconnect', () => {
+//         console.log('user disconnected');
+//     });
+
+//     // Your other event handlers go here
+// });
 
 app.use(cors({ origin: process.env.REACT_URL, credentials: true, exposedHeaders: ['Set-Cookie', 'Date', 'ETag'] }));
 app.use(cookieParser());

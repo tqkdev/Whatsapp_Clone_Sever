@@ -101,7 +101,9 @@ export const getOrCreateConversation = async (req: Request, res: Response) => {
 
         const userIds = [user1Id, user2Id].sort();
         const conversationsRef = collection(firestoredatabase, 'conversations');
+
         const querySnapshot = await getDocs(conversationsRef);
+        // console.log(querySnapshot);
 
         let foundConversation: Conversation | undefined;
 
@@ -146,28 +148,89 @@ export const getOrCreateConversation = async (req: Request, res: Response) => {
     }
 };
 
+// export const getAllConversations = async (req: Request, res: Response) => {
+//     try {
+// const conversationsRef = collection(firestoredatabase, 'conversations');
+// const querySnapshot = await getDocs(conversationsRef);
+
+// const conversations: Conversation[] = [];
+
+//         querySnapshot.forEach((doc) => {
+//             try {
+//                 const conversation = doc.data() as Conversation;
+//                 conversations.push({
+//                     id: doc.id,
+//                     participants: conversation.participants,
+//                     messages: conversation.messages,
+//                 });
+//             } catch (error) {
+//                 console.error('Error in forEach:', error);
+//             }
+//         });
+
+//         // Phát tín hiệu qua Socket.IO
+//         // const io = getSocketIO();
+//         io.emit('allConversations', conversations);
+
+//         sendSuccessResponse(res, conversations, 'Fetched all conversations.');
+//     } catch (error) {
+//         console.error('Error in getAllConversations:', error);
+//         sendNotFoundResponse(res, 'Failed to fetch conversations.');
+//     }
+// };
+
 export const getAllConversations = async (req: Request, res: Response) => {
     try {
+        const { userId } = req.body;
+
+        if (!userId) {
+            sendNotFoundResponse(res, 'Missing user ID.');
+            return;
+        }
+
         const conversationsRef = collection(firestoredatabase, 'conversations');
+
         const querySnapshot = await getDocs(conversationsRef);
+        // console.log(querySnapshot);
+
+        // querySnapshot.forEach((doc) => {
+        //     try {
+        //         const conversation = doc.data() as Conversation;
+        //         const participantIds = conversation.participants.map((participant) => participant.id).sort();
+        //         console.log(participantIds);
+
+        //         if (userId.toString() === participantIds.toString()) {
+        //             foundConversation = {
+        //                 id: doc.id,
+        //                 participants: conversation.participants,
+        //                 messages: conversation.messages,
+        //             };
+        //         }
+        //     } catch (error) {
+        //         console.error('Error in forEach:', error);
+        //     }
+        // });
 
         const conversations: Conversation[] = [];
 
         querySnapshot.forEach((doc) => {
             try {
                 const conversation = doc.data() as Conversation;
-                conversations.push({
-                    id: doc.id,
-                    participants: conversation.participants,
-                    messages: conversation.messages,
-                });
+                const participantIds = conversation.participants.map((participant) => participant.id);
+
+                if (participantIds.includes(userId)) {
+                    conversations.push({
+                        id: doc.id,
+                        participants: conversation.participants,
+                        messages: conversation.messages,
+                    });
+                }
             } catch (error) {
                 console.error('Error in forEach:', error);
             }
         });
 
         // Phát tín hiệu qua Socket.IO
-        // const io = getSocketIO();
         io.emit('allConversations', conversations);
 
         sendSuccessResponse(res, conversations, 'Fetched all conversations.');

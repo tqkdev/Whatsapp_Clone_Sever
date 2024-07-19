@@ -6,6 +6,6 @@ import authenticateToken from '../middlewares/authMiddleware';
 const router = express.Router();
 
 router.post('/conversation', authenticateToken, getOrCreateConversation);
-router.get('/conversations', authenticateToken, getAllConversations);
+router.post('/conversations', authenticateToken, getAllConversations);
 
 export default router;
