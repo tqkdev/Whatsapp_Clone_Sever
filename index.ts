@@ -66,7 +66,7 @@ app.use(express.json());
 app.use(cors());
 app.use(bodyParser.json());
 
-const reactUrl = process.env.REACT_URL || 'http://localhost:3000';
+const reactUrl = process.env.REACT_URL || 'https://whatsapp-clone-lovat-mu.vercel.app';
 
 // Add headers before the routes are defined
 app.use((req, res, next) => {

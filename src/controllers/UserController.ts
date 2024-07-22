@@ -153,16 +153,16 @@ export const login = async (req: Request, res: Response) => {
         // Đặt token vào cookie
         res.cookie('refreshToken', refreshToken, {
             httpOnly: true,
-            secure: false, // Nên để là true nếu sử dụng HTTPS
+            secure: true, // Nên để là true nếu sử dụng HTTPS
             path: '/',
-            sameSite: 'strict',
+            sameSite: 'none',
         });
 
         res.cookie('accessToken', accessToken, {
             httpOnly: true,
-            secure: false, // Nên để là true nếu sử dụng HTTPS
+            secure: true, // Nên để là true nếu sử dụng HTTPS
             path: '/',
-            sameSite: 'strict',
+            sameSite: 'none',
         });
 
         const { password: _, ...userWithoutPassword } = userData;
