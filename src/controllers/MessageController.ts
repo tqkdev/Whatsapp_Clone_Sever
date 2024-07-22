@@ -11,8 +11,6 @@ export const sendMessage = async (req: Request, res: Response) => {
         const { conversationId } = req.params;
         const { senderId, content, created_at } = req.body;
 
-        console.log(created_at);
-
         if (!conversationId) {
             sendNotFoundResponse(res, 'Missing conversation ID.');
             return;
