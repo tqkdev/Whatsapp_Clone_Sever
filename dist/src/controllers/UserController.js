@@ -174,15 +174,15 @@ const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         // Đặt token vào cookie
         res.cookie('refreshToken', refreshToken, {
             httpOnly: true,
-            secure: true, // Nên để là true nếu sử dụng HTTPS
+            secure: false, // Nên để là true nếu sử dụng HTTPS
             path: '/',
-            sameSite: 'none',
+            sameSite: 'strict',
         });
         res.cookie('accessToken', accessToken, {
             httpOnly: true,
-            secure: true, // Nên để là true nếu sử dụng HTTPS
+            secure: false, // Nên để là true nếu sử dụng HTTPS
             path: '/',
-            sameSite: 'none',
+            sameSite: 'strict',
         });
         const { password: _ } = userData, userWithoutPassword = __rest(userData, ["password"]);
         (0, response_1.sendSuccessResponse)(res, { id: userDoc.id, user: userWithoutPassword }, 'Login successful.');

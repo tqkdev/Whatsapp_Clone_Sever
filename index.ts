@@ -66,7 +66,7 @@ app.use(express.json());
 app.use(cors());
 app.use(bodyParser.json());
 
-const reactUrl = process.env.REACT_URL || 'https://whatsapp-clone-lovat-mu.vercel.app';
+const reactUrl = process.env.REACT_URL || 'http://localhost:3000';
 
 // Add headers before the routes are defined
 app.use((req, res, next) => {
@@ -96,9 +96,9 @@ app.get('/', (req, res) => {
     res.send('Express + TypeScript Server');
 });
 
-const PORT = process.env.PORT || 80;
+const PORT = process.env.PORT || 3001;
 server.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 });
 // export { io };
-export { io, userSockets, app, server };
+export { io, userSockets };

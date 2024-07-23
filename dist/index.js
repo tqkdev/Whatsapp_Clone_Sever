@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.server = exports.app = exports.userSockets = exports.io = void 0;
+exports.userSockets = exports.io = void 0;
 const cookie_parser_1 = __importDefault(require("cookie-parser"));
 const cors_1 = __importDefault(require("cors"));
 const body_parser_1 = __importDefault(require("body-parser"));
@@ -16,9 +16,7 @@ const Message_1 = __importDefault(require("./src/routes/Message"));
 const http_1 = require("http");
 dotenv_1.default.config();
 const app = (0, express_1.default)();
-exports.app = app;
 const server = (0, http_1.createServer)(app);
-exports.server = server;
 const io = new socket_io_1.Server(server, {
     cors: {
         origin: process.env.REACT_URL,
@@ -64,7 +62,7 @@ app.use((0, cookie_parser_1.default)());
 app.use(express_1.default.json());
 app.use((0, cors_1.default)());
 app.use(body_parser_1.default.json());
-const reactUrl = process.env.REACT_URL || 'https://whatsapp-clone-lovat-mu.vercel.app';
+const reactUrl = process.env.REACT_URL || 'http://localhost:3000';
 // Add headers before the routes are defined
 app.use((req, res, next) => {
     // Website you wish to allow to connect
@@ -86,7 +84,7 @@ app.use('/api', Message_1.default);
 app.get('/', (req, res) => {
     res.send('Express + TypeScript Server');
 });
-const PORT = process.env.PORT || 80;
+const PORT = process.env.PORT || 3001;
 server.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 });
