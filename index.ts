@@ -92,9 +92,13 @@ app.use('/api', User);
 app.use('/api', Conversation);
 app.use('/api', Message);
 
+app.get('/', (req, res) => {
+    res.send('Express + TypeScript Server');
+});
+
 const PORT = process.env.PORT || 3001;
 server.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 });
 // export { io };
-export { io, userSockets };
+export { io, userSockets, app, server };
