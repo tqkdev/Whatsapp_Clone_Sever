@@ -86,7 +86,7 @@ app.use('/api', Message_1.default);
 app.get('/', (req, res) => {
     res.send('Express + TypeScript Server');
 });
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 80;
 server.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 });
