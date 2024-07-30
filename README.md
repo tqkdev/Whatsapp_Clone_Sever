@@ -4,8 +4,47 @@
 <p>Conversation: Lưu trữ thông tin về các cuộc trò chuyện giữa các người dùng, bao gồm danh sách các tin nhắn.</p>
 <p>Message: Lưu trữ nội dung của các tin nhắn trong các cuộc trò chuyện.</p>
 <h2>Socket.IO</h2>
-<p>Dự án sử dụng Socket.IO để cung cấp các tính năng giao tiếp thời gian thực. Socket.IO cho phép server gửi các sự kiện đến các client kết nối, và ngược lại, giúp duy trì cập nhật dữ liệu liên tục mà không cần phải tải lại trang.</p>
-<h2>Các sự kiện Socket.IO</h2>
-<p>newConversation: Phát khi một cuộc trò chuyện mới được tạo.</p>
-<p>newMessage: Phát khi một tin nhắn mới được gửi trong cuộc trò chuyện.</p>
-<p>allConversations: Phát khi tất cả các cuộc trò chuyện được lấy từ database.</p>
+<p>Socket.IO để cung cấp các tính năng giao tiếp thời gian thực. Socket.IO cho phép server gửi các sự kiện đến các client kết nối, và ngược lại, giúp duy trì cập nhật dữ liệu liên tục mà không cần phải tải lại trang.</p>
+
+## Công Nghệ
+- **Backend**: Node.js, Express.js, TypeScript, Firestore, Socket.IO, JWT.
+
+## Cài Đặt
+
+1. Clone repository:
+
+    ```sh
+    git clone git@github.com:tqkdev/Whatsapp_Clone_Sever.git
+    cd app/Whatsapp_Clone_Sever
+    ```
+
+2. Cài đặt các phụ thuộc:
+
+    ```sh
+    npm install
+    ```
+
+3. Tạo file `.env` ở thư mục gốc của backend và thêm nội dung sau:
+
+    ```env
+    JWT_ACCESS_KEY=<jwt_access_key>
+    JWT_REFRESH_KEY=<jwt_refresh_key>
+    PORT=3001
+    REACT_URL = <react_url>
+    FIREBASE_DATABASE_URL = <firebase_database_url>
+    ```
+
+4. Sửa file `package.json` :
+    ```scripts
+    "build": "rimraf dist && npx tsc"
+    "prestart": "npm run build"
+    "start": "node dist/index.js"
+    "preserve": "npm run build"
+    "serve": "concurrently \"npx tsc -w\"  \"nodemon dist/index.js\""
+    ```
+
+4. Khởi động server backend:
+
+    ```sh
+    npm serve
+    ```
