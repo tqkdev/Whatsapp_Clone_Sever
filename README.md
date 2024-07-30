@@ -1,3 +1,6 @@
+#  Express.js + TypeScript
+
+## Giới Thiệu
 <p> Whatsapp_Clone_Sever là một máy chủ Express.js cho 1 ứng dụng nhắn tin được xây dựng bằng TypeScript, Firestore và Socket.IO. Nó bao gồm các chức năng quản lý người dùng và cuộc trò chuyện, với khả năng giao tiếp thời gian thực.</p>
 <h1>Cấu trúc dữ liệu</h1>
 <p>User: Lưu trữ thông tin người dùng như username, email, và password.</p>
