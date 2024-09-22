@@ -1,5 +1,6 @@
 import { initializeApp, FirebaseApp } from 'firebase/app';
 import { getFirestore, Firestore, collection, doc, DocumentData } from 'firebase/firestore';
+import { getStorage, ref, StorageReference } from 'firebase/storage';
 import * as dotenv from 'dotenv';
 
 dotenv.config();
@@ -30,4 +31,7 @@ const firebaseConfig = {
 const app: FirebaseApp = initializeApp(firebaseConfig);
 const firestoredatabase: Firestore = getFirestore(app);
 
-export { app, firestoredatabase, collection, doc, DocumentData };
+// Initialize Firebase Storage
+const storage = getStorage(app); // Thêm cấu hình Firebase Storage
+
+export { app, firestoredatabase, collection, doc, DocumentData, storage, ref, StorageReference };

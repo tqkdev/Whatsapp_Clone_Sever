@@ -23,11 +23,13 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.doc = exports.collection = exports.firestoredatabase = exports.app = void 0;
+exports.ref = exports.storage = exports.doc = exports.collection = exports.firestoredatabase = exports.app = void 0;
 const app_1 = require("firebase/app");
 const firestore_1 = require("firebase/firestore");
 Object.defineProperty(exports, "collection", { enumerable: true, get: function () { return firestore_1.collection; } });
 Object.defineProperty(exports, "doc", { enumerable: true, get: function () { return firestore_1.doc; } });
+const storage_1 = require("firebase/storage");
+Object.defineProperty(exports, "ref", { enumerable: true, get: function () { return storage_1.ref; } });
 const dotenv = __importStar(require("dotenv"));
 dotenv.config();
 const { API_KEY, AUTH_DOMAIN, FIREBASE_DATABASE_URL, PROJECT_ID, STORAGE_BUCKET, MESSAGING_SENDER_ID, APP_ID, MEASUREMENT_ID, } = process.env;
@@ -46,3 +48,6 @@ const app = (0, app_1.initializeApp)(firebaseConfig);
 exports.app = app;
 const firestoredatabase = (0, firestore_1.getFirestore)(app);
 exports.firestoredatabase = firestoredatabase;
+// Initialize Firebase Storage
+const storage = (0, storage_1.getStorage)(app); // Thêm cấu hình Firebase Storage
+exports.storage = storage;
